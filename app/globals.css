@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --gold: #C9A84C;
+  --gold-light: #E8C87A;
+  --gold-dark: #A07830;
+  --bg: #111111;
+  --bg-card: #1C1C1C;
+  --bg-input: #242424;
+  --border: rgba(201,168,76,0.15);
+  --text: #F5F5F5;
+  --muted: #888888;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
 }
+
+input, textarea, select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  font-size: 15px;
+}
+input:focus, textarea:focus { border-color: var(--gold); }
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light));
+  color: #111;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 24px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 15px;
+  transition: opacity 0.2s;
+  letter-spacing: 0.02em;
+}
+.btn-gold:hover { opacity: 0.88; }
+.btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 12px 24px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
