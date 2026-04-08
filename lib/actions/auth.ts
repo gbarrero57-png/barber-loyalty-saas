@@ -31,10 +31,12 @@ export async function register(formData: FormData) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
-  // 1. Crear usuario Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({ email, password })
+  // 1. Crear usuario Auth via admin (email pre-confirmado, sin requerir verificación)
+  const { data: authData, error: authError } = await admin.auth.admin.createUser({
+    email, password, email_confirm: true
+  })
   if (authError || !authData.user) {
-    if (authError?.message?.includes('already registered'))
+    if (authError?.message?.includes('already been registered') || authError?.message?.includes('already registered'))
       return { error: 'Ya existe una cuenta con ese email.' }
     return { error: authError?.message ?? 'Error al crear cuenta.' }
   }
@@ -64,6 +66,9 @@ export async function register(formData: FormData) {
     shop_id: shop.id, tarjeta_num: 1,
     premio_texto: 'Corte gratis', es_default: true, activo: true
   })
+
+  // 5. Login inmediato — crea sesión activa (evita redirect sin sesión)
+  await supabase.auth.signInWithPassword({ email, password })
 
   redirect('/')
 }
