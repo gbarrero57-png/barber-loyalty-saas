@@ -1,9 +1,16 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getMyShop } from '@/lib/actions/shop'
 import { logout } from '@/lib/actions/auth'
-import { Scissors, Users, Settings, LogOut, BarChart2 } from 'lucide-react'
+import { Scissors, LogOut } from 'lucide-react'
+import BottomNav from '@/components/BottomNav'
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Buenos días'
+  if (h < 19) return 'Buenas tardes'
+  return 'Buenas noches'
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -11,57 +18,118 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) redirect('/login')
 
   const shop = await getMyShop()
-  if (!shop) redirect('/register')
+
+  if (!shop) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexDirection: 'column', gap: 16,
+        padding: 24, textAlign: 'center', background: '#0A0A0A',
+      }}>
+        <Scissors style={{ width: 28, height: 28, color: 'var(--yellow)' }} />
+        <p style={{ fontSize: 17, fontWeight: 700, margin: 0, fontFamily: 'var(--serif)' }}>
+          Configurando tu barbería…
+        </p>
+        <form action={logout}>
+          <button type="submit" style={{
+            background: 'none', border: '1px solid var(--border)', color: 'var(--muted)',
+            padding: '8px 18px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+            fontFamily: 'var(--sans)',
+          }}>
+            Cerrar sesión
+          </button>
+        </form>
+      </div>
+    )
+  }
 
   const trialDays = Math.max(0, Math.ceil(
     (new Date(shop.trial_ends_at).getTime() - Date.now()) / 86400000
   ))
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+
+      {/* ── Fixed background: descarga.png (scissors close-up) ── */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0,
+        backgroundImage: 'url(/barber-scissors.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+      }} />
+      {/* Dark overlay so content is readable */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0,
+        background: 'rgba(0,0,0,0.78)',
+      }} />
+
       {/* Trial banner */}
       {shop.plan === 'trial' && trialDays <= 7 && (
-        <div style={{ background: 'rgba(201,168,76,0.12)', borderBottom: '1px solid rgba(201,168,76,0.2)', padding: '8px 16px', textAlign: 'center', fontSize: 13 }}>
-          <span style={{ color: 'var(--gold)' }}>⏳ Trial: {trialDays} días restantes</span>
+        <div style={{
+          position: 'relative', zIndex: 10,
+          background: 'rgba(245,197,0,0.1)',
+          borderBottom: '1px solid rgba(245,197,0,0.15)',
+          padding: '7px 16px', textAlign: 'center', fontSize: 12,
+        }}>
+          <span style={{ color: 'var(--yellow)', fontWeight: 600 }}>⏳ Trial: {trialDays} días restantes</span>
           <span style={{ color: 'var(--muted)', marginLeft: 8 }}>— S/79/mes para continuar</span>
         </div>
       )}
 
-      {/* Top navbar */}
-      <nav style={{ background: '#161616', borderBottom: '1px solid var(--border)', padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
-        <div className="flex items-center gap-2">
-          <Scissors className="w-5 h-5" style={{ color: 'var(--gold)' }} />
-          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+      {/* Top navbar — glass */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '0 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: 60,
+      }}>
+        <div>
+          <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 500, lineHeight: 1 }}>
+            {getGreeting()} 👋
+          </p>
+          <p style={{
+            margin: '3px 0 0', fontWeight: 900, fontSize: 16,
+            color: '#fff', fontFamily: 'var(--serif)', letterSpacing: '-0.01em', lineHeight: 1,
+          }}>
             {shop.nombre}
-          </span>
+          </p>
         </div>
-        <form action={logout}>
-          <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
-            <LogOut className="w-4 h-4" />
-          </button>
-        </form>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, background: 'var(--yellow)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Scissors style={{ width: 16, height: 16, color: '#000' }} />
+          </div>
+          <form action={logout}>
+            <button type="submit" className="btn-logout">
+              <LogOut style={{ width: 15, height: 15 }} />
+            </button>
+          </form>
+        </div>
       </nav>
 
-      {/* Content */}
-      <main style={{ flex: 1, padding: '20px 16px', maxWidth: 520, margin: '0 auto', width: '100%' }}>
+      {/* Main content */}
+      <main style={{
+        position: 'relative', zIndex: 10,
+        flex: 1,
+        padding: '24px 18px',
+        maxWidth: 600,
+        margin: '0 auto',
+        width: '100%',
+        animation: 'fadeInUp 0.32s ease-out both',
+      }}>
         {children}
       </main>
 
       {/* Bottom nav */}
-      <nav style={{ background: '#161616', borderTop: '1px solid var(--border)', display: 'flex', position: 'sticky', bottom: 0 }}>
-        {[
-          { href: '/',               icon: Scissors,  label: 'Inicio' },
-          { href: '/clientes',       icon: Users,     label: 'Clientes' },
-          { href: '/admin/reportes', icon: BarChart2, label: 'Reportes' },
-          { href: '/admin/premios',  icon: Settings,  label: 'Admin' },
-        ].map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 0', color: 'var(--muted)', fontSize: 10, fontWeight: 600, textDecoration: 'none', gap: 3 }}>
-            <Icon className="w-5 h-5" />
-            {label}
-          </Link>
-        ))}
-      </nav>
+      <div style={{ position: 'relative', zIndex: 50 }}>
+        <BottomNav />
+      </div>
     </div>
   )
 }

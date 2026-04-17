@@ -11,6 +11,11 @@ export type Shop = {
   trial_ends_at: string
   active: boolean
   created_at: string
+  whatsapp_enabled: boolean
+  whatsapp_from: string | null
+  // joined from subscriptions
+  subscription_plan?: 'phase1' | 'phase2' | null
+  subscription_status?: 'trial' | 'active' | 'paused' | 'cancelled' | null
 }
 
 export type Client = {

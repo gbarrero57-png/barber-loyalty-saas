@@ -6,6 +6,9 @@ import { getMyShop } from './shop'
 import {
   sendSelloRegistrado, sendPremioDesbloqueado, sendPremioCanjado
 } from '@/lib/email/sender'
+import {
+  waSelloRegistrado, waPremioDesbloqueado, waPremioCanjado
+} from '@/lib/whatsapp'
 
 async function getNextPremio(supabase: Awaited<ReturnType<typeof createClient>>, shopId: string, tarjetaNum: number) {
   const { data: r } = await supabase.from('rewards_config')
@@ -23,7 +26,7 @@ export async function registerVisit(clientId: string) {
 
   const [{ data: card }, { data: client }] = await Promise.all([
     supabase.from('loyalty_cards').select('*').eq('client_id', clientId).single(),
-    supabase.from('clients').select('nombre,email').eq('id', clientId).single(),
+    supabase.from('clients').select('nombre,email,telefono').eq('id', clientId).single(),
   ])
 
   if (!card || !client) return { error: 'Cliente no encontrado.' }
@@ -49,10 +52,19 @@ export async function registerVisit(clientId: string) {
 
   await supabase.from('visits').insert({ shop_id: shop.id, client_id: clientId })
 
+  const isPhase2 = shop.subscription_plan === 'phase2' && shop.whatsapp_enabled
+  const tel = (client as any).telefono as string | null
+
   if (completa && premioTexto) {
-    sendPremioDesbloqueado(client.email, client.nombre, shop.nombre, premioTexto, card.tarjetas_completas + 1)
+    await sendPremioDesbloqueado(client.email, client.nombre, shop.nombre, premioTexto, card.tarjetas_completas + 1)
+    if (isPhase2 && tel) {
+      await waPremioDesbloqueado(tel, client.nombre, shop.nombre, premioTexto)
+    }
   } else {
-    sendSelloRegistrado(client.email, client.nombre, shop.nombre, nuevas, nextPremio)
+    await sendSelloRegistrado(client.email, client.nombre, shop.nombre, nuevas, nextPremio)
+    if (isPhase2 && tel) {
+      await waSelloRegistrado(tel, client.nombre, shop.nombre, nuevas, nextPremio)
+    }
   }
 
   revalidatePath(`/clientes/${clientId}`)
@@ -66,7 +78,7 @@ export async function redeemPrize(clientId: string) {
 
   const [{ data: card }, { data: client }] = await Promise.all([
     supabase.from('loyalty_cards').select('*').eq('client_id', clientId).single(),
-    supabase.from('clients').select('nombre,email').eq('id', clientId).single(),
+    supabase.from('clients').select('nombre,email,telefono').eq('id', clientId).single(),
   ])
 
   if (!card || !client) return { error: 'No encontrado.' }
@@ -87,7 +99,13 @@ export async function redeemPrize(clientId: string) {
   })
 
   const nextPremio = await getNextPremio(supabase, shop.id, nuevaTarjetaNum + 1)
-  sendPremioCanjado(client.email, client.nombre, shop.nombre, premioCanjeado, nuevaTarjetaNum, nextPremio)
+  await sendPremioCanjado(client.email, client.nombre, shop.nombre, premioCanjeado, nuevaTarjetaNum, nextPremio)
+
+  const isPhase2 = shop.subscription_plan === 'phase2' && shop.whatsapp_enabled
+  const tel = (client as any).telefono as string | null
+  if (isPhase2 && tel) {
+    await waPremioCanjado(tel, client.nombre, shop.nombre, premioCanjeado)
+  }
 
   revalidatePath(`/clientes/${clientId}`)
   return { success: true }

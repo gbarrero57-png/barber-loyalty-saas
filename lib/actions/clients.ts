@@ -3,17 +3,18 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getMyShop } from './shop'
 import { sendBienvenida } from '@/lib/email/sender'
 import type { ClientWithCard } from '@/lib/types'
 
 export async function searchClients(query: string) {
   if (!query || query.trim().length < 2) return []
-  const supabase = await createClient()
   const shop = await getMyShop()
   if (!shop) return []
 
-  const { data } = await supabase
+  const admin = createAdminClient()
+  const { data } = await admin
     .from('clients')
     .select('*')
     .eq('shop_id', shop.id)
@@ -24,27 +25,43 @@ export async function searchClients(query: string) {
   return data ?? []
 }
 
+export async function getVisitHistory(clientId: string) {
+  const shop = await getMyShop()
+  if (!shop) return []
+
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('visits')
+    .select('id, fecha, premio_aplicado')
+    .eq('client_id', clientId)
+    .eq('shop_id', shop.id)
+    .order('fecha', { ascending: false })
+    .limit(20)
+
+  return data ?? []
+}
+
 export async function getClientWithCard(id: string): Promise<ClientWithCard | null> {
-  const supabase = await createClient()
   const shop = await getMyShop()
   if (!shop) return null
 
-  const { data: client } = await supabase
+  const admin = createAdminClient()
+  const { data: client } = await admin
     .from('clients').select('*').eq('id', id).eq('shop_id', shop.id).single()
   if (!client) return null
 
-  const { data: card } = await supabase
+  const { data: card } = await admin
     .from('loyalty_cards').select('*').eq('client_id', id).single()
   if (!card) return null
 
   const nextTarjeta = card.tarjetas_completas + 1
-  const { data: reward } = await supabase.from('rewards_config')
+  const { data: reward } = await admin.from('rewards_config')
     .select('premio_texto').eq('shop_id', shop.id)
     .eq('tarjeta_num', nextTarjeta).eq('activo', true).single()
 
   let nextPremio = reward?.premio_texto ?? null
   if (!nextPremio) {
-    const { data: def } = await supabase.from('rewards_config')
+    const { data: def } = await admin.from('rewards_config')
       .select('premio_texto').eq('shop_id', shop.id)
       .eq('es_default', true).eq('activo', true).single()
     nextPremio = def?.premio_texto ?? null
@@ -81,7 +98,7 @@ export async function createClientAction(formData: FormData) {
     .select('premio_texto').eq('shop_id', shop.id).eq('es_default', true).eq('activo', true).single()
   const nextPremio = reward?.premio_texto ?? def?.premio_texto ?? null
 
-  sendBienvenida(email, nombre, shop.nombre, nextPremio)
+  await sendBienvenida(email, nombre, shop.nombre, nextPremio)
 
   redirect(`/clientes/${client.id}`)
 }
