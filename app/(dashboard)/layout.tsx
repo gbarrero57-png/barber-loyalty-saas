@@ -19,6 +19,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const shop = await getMyShop()
 
+  if (shop && !(shop as any).onboarding_done) redirect('/onboarding')
+
   if (!shop) {
     return (
       <div style={{

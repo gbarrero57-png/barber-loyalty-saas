@@ -13,6 +13,7 @@ export type Shop = {
   created_at: string
   whatsapp_enabled: boolean
   whatsapp_from: string | null
+  onboarding_done?: boolean
   // joined from subscriptions
   subscription_plan?: 'phase1' | 'phase2' | null
   subscription_status?: 'trial' | 'active' | 'paused' | 'cancelled' | null

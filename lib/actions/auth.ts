@@ -11,7 +11,7 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   })
   if (error) return { error: 'Email o contraseña incorrectos.' }
-  redirect('/')
+  redirect('/home')
 }
 
 export async function logout() {
@@ -75,7 +75,7 @@ export async function register(formData: FormData) {
       return { error: 'Cuenta creada pero error al iniciar sesión: ' + loginError.message }
     }
 
-    redirect('/')
+    redirect('/onboarding')
   } catch (err: unknown) {
     // redirect() lanza internamente — re-lanzar siempre para que Next.js lo maneje
     const digest = (err as any)?.digest ?? ''
