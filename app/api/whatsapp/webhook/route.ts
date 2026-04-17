@@ -32,12 +32,14 @@ export async function POST(request: NextRequest) {
 
     // Buscar barbería por número Twilio (bot_twilio_number)
     const rawNumber = to.replace('whatsapp:', '')
-    const { data: shop } = await admin
+    const { data: shops } = await admin
       .from('shops')
       .select('*')
       .eq('bot_twilio_number', rawNumber)
       .eq('bot_enabled', true)
-      .single()
+      .limit(1)
+
+    const shop = shops?.[0] ?? null
 
     if (!shop) {
       // No hay barbería con ese número — no responder (evitar spam)
