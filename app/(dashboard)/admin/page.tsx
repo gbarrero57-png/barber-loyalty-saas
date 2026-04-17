@@ -1,13 +1,14 @@
 import Link from 'next/link'
-import { Scissors, Tag, Gift, Settings, BarChart2, Clock, ChevronRight } from 'lucide-react'
+import { Scissors, Tag, Gift, Settings, BarChart2, Clock, MessageCircle, ChevronRight } from 'lucide-react'
 
 const SECTIONS = [
-  { href: '/admin/barberos',      icon: Scissors,  label: 'Barberos',      desc: 'Gestiona tu equipo',       color: 'var(--gold)'  },
-  { href: '/admin/servicios',     icon: Tag,       label: 'Servicios',     desc: 'Catálogo y precios',       color: '#34d399'      },
-  { href: '/admin/horarios',      icon: Clock,     label: 'Horarios',      desc: 'Días y horas de atención', color: '#fbbf24'      },
-  { href: '/admin/premios',       icon: Gift,      label: 'Premios',       desc: 'Recompensas de fidelidad', color: '#f472b6'      },
-  { href: '/admin/reportes',      icon: BarChart2, label: 'Reportes',      desc: 'Métricas y estadísticas',  color: '#818cf8'      },
-  { href: '/admin/configuracion', icon: Settings,  label: 'Configuración', desc: 'Datos de tu barbería',     color: 'var(--muted)' },
+  { href: '/admin/barberos',      icon: Scissors,      label: 'Barberos',      desc: 'Gestiona tu equipo',       color: 'var(--gold)'  },
+  { href: '/admin/servicios',     icon: Tag,           label: 'Servicios',     desc: 'Catálogo y precios',       color: '#34d399'      },
+  { href: '/admin/horarios',      icon: Clock,         label: 'Horarios',      desc: 'Días y horas de atención', color: '#fbbf24'      },
+  { href: '/admin/premios',       icon: Gift,          label: 'Premios',       desc: 'Recompensas de fidelidad', color: '#f472b6'      },
+  { href: '/admin/whatsapp',      icon: MessageCircle, label: 'Bot WhatsApp',  desc: 'Agendamiento automático',  color: '#25d366'      },
+  { href: '/admin/reportes',      icon: BarChart2,     label: 'Reportes',      desc: 'Métricas y estadísticas',  color: '#818cf8'      },
+  { href: '/admin/configuracion', icon: Settings,      label: 'Configuración', desc: 'Datos de tu barbería',     color: 'var(--muted)' },
 ]
 
 export default function AdminPage() {
