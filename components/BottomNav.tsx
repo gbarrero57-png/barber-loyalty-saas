@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Scissors, Users, CalendarDays, Wallet, CreditCard, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/',         icon: Scissors,     label: 'Inicio'   },
+  { href: '/home',     icon: Scissors,     label: 'Inicio'   },
   { href: '/clientes', icon: Users,        label: 'Clientes' },
   { href: '/citas',    icon: CalendarDays, label: 'Agenda'   },
   { href: '/caja',     icon: Wallet,       label: 'Caja'     },
@@ -30,7 +30,7 @@ export default function BottomNav() {
       gap: 2,
     }}>
       {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-        const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+        const isActive = href === '/home' ? pathname === '/home' : pathname.startsWith(href)
 
         return (
           <Link
