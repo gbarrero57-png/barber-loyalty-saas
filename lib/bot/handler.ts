@@ -5,7 +5,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAvailableSlots, formatFechaES } from './slots'
 
-type BotState = 'menu' | 'sel_service' | 'sel_barber' | 'sel_fecha' | 'sel_hora' | 'confirm' | 'mis_citas'
+type BotState = 'menu' | 'sel_service' | 'sel_barber' | 'sel_fecha' | 'sel_hora' | 'confirm' | 'mis_citas' | 'cancelar'
 
 interface SessionData {
   service_id?: string
@@ -156,9 +156,57 @@ export async function handleBotMessage(
     }
 
     if (opt === 3) {
-      await saveSession(admin, phone, shop.id, { state: 'menu', data: {} })
-      return `Para cancelar una cita, llama directamente a *${shop.nombre}* o visítanos.\n\n_En una próxima versión podrás cancelar desde aquí._`
+      const cleanPhone = phone.replace('whatsapp:', '').replace('+', '')
+      const { data: citas } = await admin
+        .from('appointments')
+        .select('id, fecha_inicio, services(nombre), barbers(nombre)')
+        .eq('shop_id', shop.id)
+        .eq('client_tel', cleanPhone)
+        .gte('fecha_inicio', new Date().toISOString())
+        .in('estado', ['pendiente', 'confirmado'])
+        .order('fecha_inicio')
+        .limit(5)
+
+      if (!citas?.length) {
+        await saveSession(admin, phone, shop.id, { state: 'menu', data: {} })
+        return `No tienes citas próximas para cancelar en *${shop.nombre}*.\n\nEscribe *menú* para volver.`
+      }
+
+      const lines = citas.map((c: any, i: number) => {
+        const dt = new Date(c.fecha_inicio)
+        const fecha = dt.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' })
+        const hora  = dt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+        const svc   = c.services?.nombre ?? 'Servicio'
+        return `${i + 1}. ${fecha} ${hora} — ${svc}`
+      })
+
+      const opciones = citas.map((c: any) => c.id)
+      await saveSession(admin, phone, shop.id, { state: 'cancelar', data: { opciones } })
+      return `❌ *¿Cuál cita deseas cancelar?*\n\n${lines.join('\n')}\n\n_Responde con el número o escribe *menú* para volver._`
     }
+  }
+
+  // ── CANCELAR ──────────────────────────────────────────────────────────────
+  if (session.state === 'cancelar') {
+    const { opciones = [] } = session.data
+    const opt = parseSelection(body, opciones.length)
+    if (!opt) return `Responde con un número del 1 al ${opciones.length}.\nEscribe *menú* para volver.`
+
+    const apptId = opciones[opt - 1]
+    const { data: appt } = await admin
+      .from('appointments')
+      .select('fecha_inicio, services(nombre)')
+      .eq('id', apptId)
+      .single()
+
+    await admin.from('appointments').update({ estado: 'cancelado' }).eq('id', apptId)
+    await saveSession(admin, phone, shop.id, { state: 'menu', data: {} })
+
+    const dt    = appt ? new Date(appt.fecha_inicio) : null
+    const label = dt ? dt.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' }) + ' a las ' + dt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : ''
+    const svc   = (appt?.services as any)?.nombre ?? 'tu cita'
+
+    return `✅ *Cita cancelada*\n\n${svc}${label ? ` del ${label}` : ''} ha sido cancelada.\n\nEscribe *menú* si necesitas algo más.`
   }
 
   // ── SEL SERVICE ───────────────────────────────────────────────────────────
