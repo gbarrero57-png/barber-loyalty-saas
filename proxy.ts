@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
 
     const isAuth = path.startsWith('/login') || path.startsWith('/register')
     const isSuperAdmin = path.startsWith('/superadmin')
-    const isPublic = path.startsWith('/pagar') || path.startsWith('/api/')
+    const isPublic = path === '/' || path.startsWith('/pagar') || path.startsWith('/api/')
 
     // Rutas sin auth
     if (isSuperAdmin || isPublic) return supabaseResponse
