@@ -63,8 +63,7 @@ export async function POST() {
       )
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID ?? 'MISSING_PRICE_ID'
-    console.log('[stripe/checkout] customerId:', customerId, 'priceId:', priceId, 'appUrl:', appUrl)
+    const priceId = (process.env.STRIPE_PRICE_ID ?? '').trim()
     const session = await stripePost('/checkout/sessions', {
       customer: customerId,
       mode: 'subscription',
