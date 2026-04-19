@@ -13,7 +13,10 @@ export async function POST() {
 
     const stripeKey = process.env.STRIPE_SECRET_KEY
     if (!stripeKey) return NextResponse.json({ error: 'STRIPE_SECRET_KEY missing' }, { status: 500 })
-    const stripe = new Stripe(stripeKey, { apiVersion: '2025-01-27.acacia' as any })
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: '2025-01-27.acacia' as any,
+      httpClient: Stripe.createNodeHttpClient(),
+    })
     const admin = createAdminClient()
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barber-loyalty-saas.vercel.app'
 
