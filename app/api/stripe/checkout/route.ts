@@ -11,7 +11,9 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+    const stripeKey = process.env.STRIPE_SECRET_KEY
+    if (!stripeKey) return NextResponse.json({ error: 'STRIPE_SECRET_KEY missing' }, { status: 500 })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2025-01-27.acacia' as any })
     const admin = createAdminClient()
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barber-loyalty-saas.vercel.app'
 
@@ -59,7 +61,9 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url })
   } catch (e: any) {
-    console.error('[stripe/checkout]', e)
-    return NextResponse.json({ error: e?.message ?? 'Error interno' }, { status: 500 })
+    const msg = e?.message ?? String(e)
+    const type = e?.type ?? e?.constructor?.name ?? 'unknown'
+    console.error('[stripe/checkout]', type, msg)
+    return NextResponse.json({ error: `${type}: ${msg}` }, { status: 500 })
   }
 }
