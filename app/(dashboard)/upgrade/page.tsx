@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getMyShop } from '@/lib/actions/shop'
-import { createCheckoutSession, createPortalSession } from '@/lib/actions/stripe'
+import UpgradeCTA from './UpgradeCTA'
 import {
   Check, Zap, Lock, MessageCircle, CalendarDays,
   Wallet, BarChart2, Users, Bell, CreditCard, Scissors, Star
@@ -43,16 +43,7 @@ const FEATURES = [
 export const dynamic = 'force-dynamic'
 
 export default async function UpgradePage() {
-  let shop: Awaited<ReturnType<typeof getMyShop>> = null
-  let debugError = ''
-  try {
-    shop = await getMyShop()
-  } catch (e: any) {
-    debugError = e?.message ?? String(e)
-  }
-  if (debugError) {
-    return <pre style={{ color: '#f87171', padding: 24, fontSize: 13, whiteSpace: 'pre-wrap' }}>{debugError}</pre>
-  }
+  const shop = await getMyShop()
   const isPhase2 = shop?.subscription_plan === 'phase2'
 
   return (
@@ -165,30 +156,7 @@ export default async function UpgradePage() {
             ))}
           </div>
 
-          {isPhase2 ? (
-            <form action={createPortalSession}>
-              <button type="submit" style={{
-                width: '100%', background: 'rgba(245,197,0,0.12)', border: '1px solid rgba(245,197,0,0.2)',
-                borderRadius: 999, padding: '13px 0', textAlign: 'center',
-                fontSize: 14, fontWeight: 800, color: 'var(--yellow)', cursor: 'pointer',
-                fontFamily: 'var(--sans)', letterSpacing: '0.03em',
-              }}>
-                ✓ Gestionar suscripción →
-              </button>
-            </form>
-          ) : (
-            <form action={createCheckoutSession}>
-              <button type="submit" style={{
-                width: '100%', background: 'var(--yellow)', color: '#000',
-                border: 'none', borderRadius: 999, padding: '14px 0',
-                fontSize: 15, fontWeight: 900, cursor: 'pointer',
-                letterSpacing: '0.03em', fontFamily: 'var(--sans)',
-                boxShadow: '0 6px 28px rgba(245,197,0,0.35)',
-              }}>
-                Activar Barber Pro →
-              </button>
-            </form>
-          )}
+          <UpgradeCTA isPhase2={isPhase2} />
           <p style={{ margin: '12px 0 0', fontSize: 11, color: 'rgba(245,197,0,0.4)', textAlign: 'center' }}>
             Sin contrato · Cancela cuando quieras
           </p>
