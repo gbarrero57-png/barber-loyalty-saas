@@ -43,7 +43,16 @@ const FEATURES = [
 export const dynamic = 'force-dynamic'
 
 export default async function UpgradePage() {
-  const shop = await getMyShop()
+  let shop: Awaited<ReturnType<typeof getMyShop>> = null
+  let debugError = ''
+  try {
+    shop = await getMyShop()
+  } catch (e: any) {
+    debugError = e?.message ?? String(e)
+  }
+  if (debugError) {
+    return <pre style={{ color: '#f87171', padding: 24, fontSize: 13, whiteSpace: 'pre-wrap' }}>{debugError}</pre>
+  }
   const isPhase2 = shop?.subscription_plan === 'phase2'
 
   return (
