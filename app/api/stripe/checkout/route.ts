@@ -31,7 +31,7 @@ export async function POST() {
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
     const admin = createAdminClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barber-loyalty-saas.vercel.app'
+    const appUrl = 'https://barber-loyalty-saas.vercel.app'
 
     const { data: su } = await admin
       .from('shop_users')
@@ -63,7 +63,8 @@ export async function POST() {
       )
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID!
+    const priceId = process.env.STRIPE_PRICE_ID ?? 'MISSING_PRICE_ID'
+    console.log('[stripe/checkout] customerId:', customerId, 'priceId:', priceId, 'appUrl:', appUrl)
     const session = await stripePost('/checkout/sessions', {
       customer: customerId,
       mode: 'subscription',
