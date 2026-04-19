@@ -4,9 +4,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
+// URLSearchParams encodes brackets as %5B%5D which breaks Stripe nested params
+function buildBody(params: Record<string, string>): string {
+  return Object.entries(params)
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&')
+}
+
 async function stripePost(path: string, params: Record<string, string>) {
   const key = process.env.STRIPE_SECRET_KEY!
-  const body = new URLSearchParams(params).toString()
+  const body = buildBody(params)
   const res = await fetch(`https://api.stripe.com/v1${path}`, {
     method: 'POST',
     headers: {
