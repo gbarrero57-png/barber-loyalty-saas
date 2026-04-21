@@ -61,6 +61,26 @@ export async function POST(req: NextRequest) {
       break
     }
 
+    case 'customer.subscription.updated': {
+      const sub = event.data.object as Stripe.Subscription
+      const customerId = sub.customer as string
+      const stripeStatus = sub.status // active | past_due | canceled | unpaid | trialing | paused
+      const statusMap: Record<string, string> = {
+        active:   'active',
+        trialing: 'active',
+        past_due: 'paused',
+        unpaid:   'paused',
+        paused:   'paused',
+        canceled: 'cancelled',
+      }
+      const dbStatus = statusMap[stripeStatus] ?? 'paused'
+      const dbPlan   = (stripeStatus === 'canceled') ? 'phase1' : 'phase2'
+      await admin.from('subscriptions')
+        .update({ plan: dbPlan, status: dbStatus })
+        .eq('stripe_customer_id', customerId)
+      break
+    }
+
     case 'customer.subscription.deleted': {
       const sub = event.data.object as Stripe.Subscription
       const customerId = sub.customer as string

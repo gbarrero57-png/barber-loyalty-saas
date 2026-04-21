@@ -50,8 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Guardar pago en Supabase
-    const admin = createAdminClient()
-    await admin.from('client_payments').insert({
+    await adminDb.from('client_payments').insert({
       shop_id,
       appointment_id: appointment_id ?? null,
       culqi_charge_id: charge.id,
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Si hay cita, marcarla como completada
     if (appointment_id) {
-      await admin
+      await adminDb
         .from('appointments')
         .update({ estado: 'completado' })
         .eq('id', appointment_id)
