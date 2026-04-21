@@ -38,7 +38,7 @@ export async function POST() {
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
     const admin = createAdminClient()
-    const appUrl = 'https://barber-loyalty-saas.vercel.app'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://barber-loyalty-saas.vercel.app').replace(/\/$/, '')
 
     const { data: su } = await admin
       .from('shop_users')

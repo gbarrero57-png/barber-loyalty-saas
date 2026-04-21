@@ -15,6 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Datos incompletos' }, { status: 400 })
     }
 
+    const admin = createAdminClient()
+    const { data: shop } = await admin.from('shops').select('id').eq('id', shop_id).single()
+    if (!shop) return NextResponse.json({ ok: false, error: 'Barbería no encontrada' }, { status: 404 })
+
     const stripe = new Stripe(secretKey)
 
     // Verificar con Stripe — nunca confiar solo en el cliente
@@ -25,7 +29,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Guardar en Supabase
-    const admin = createAdminClient()
     await admin.from('client_payments').insert({
       shop_id,
       appointment_id:  appointment_id || null,

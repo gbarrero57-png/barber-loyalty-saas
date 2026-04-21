@@ -66,7 +66,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       }} />
 
       {/* Trial banner */}
-      {shop.plan === 'trial' && trialDays <= 7 && (
+      {shop.subscription_plan !== 'phase2' && trialDays <= 7 && (
         <div style={{
           position: 'relative', zIndex: 10,
           background: 'rgba(245,197,0,0.1)',

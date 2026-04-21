@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -13,6 +14,10 @@ export async function POST(request: NextRequest) {
     if (!monto_centavos || !shop_id) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
+
+    const admin = createAdminClient()
+    const { data: shop } = await admin.from('shops').select('id').eq('id', shop_id).single()
+    if (!shop) return NextResponse.json({ error: 'Barbería no encontrada' }, { status: 404 })
 
     const stripe = new Stripe(secretKey)
 

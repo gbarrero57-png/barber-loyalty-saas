@@ -9,6 +9,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Datos incompletos' }, { status: 400 })
     }
 
+    const adminDb = createAdminClient()
+    const { data: shopRow } = await adminDb.from('shops').select('id').eq('id', shop_id).single()
+    if (!shopRow) return NextResponse.json({ ok: false, error: 'Barbería no encontrada' }, { status: 404 })
+
     const secretKey = process.env.CULQI_SECRET_KEY
     if (!secretKey) {
       return NextResponse.json({ ok: false, error: 'Pasarela no configurada' }, { status: 500 })
