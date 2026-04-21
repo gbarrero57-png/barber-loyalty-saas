@@ -100,6 +100,44 @@ export async function sendPremioDesbloqueado(
   await send(to, `🎉 ¡Ganaste un premio en ${shopNombre}!`, html)
 }
 
+// ── 5. Recibo de pago ────────────────────────────────────────
+export async function sendReciboPago(
+  to: string, nombre: string, shopNombre: string,
+  concepto: string, monto: number, chargeId: string,
+) {
+  const fecha = new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })
+  const montoStr = `S/ ${monto.toFixed(2)}`
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto">
+      <div style="background:#1a1a1a;padding:28px;text-align:center">
+        <h1 style="color:#FFD700;margin:0;font-size:22px">✂️ ${shopNombre}</h1>
+        <p style="color:#aaa;font-size:12px;margin:4px 0 0">Comprobante de Pago</p>
+      </div>
+      <div style="padding:28px;background:#fff">
+        <p>Hola <strong>${nombre}</strong>,</p>
+        <p>Tu pago fue procesado exitosamente. Aquí está tu comprobante:</p>
+        <div style="border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;margin:20px 0">
+          <div style="background:#f9f9f9;padding:14px 18px;border-bottom:1px solid #e5e5e5">
+            <p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.05em">Detalle</p>
+          </div>
+          <div style="padding:18px">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+              <tr><td style="padding:6px 0;color:#555">Servicio</td><td style="padding:6px 0;text-align:right;font-weight:600">${concepto}</td></tr>
+              <tr><td style="padding:6px 0;color:#555">Fecha</td><td style="padding:6px 0;text-align:right">${fecha}</td></tr>
+              <tr style="border-top:1px solid #e5e5e5">
+                <td style="padding:12px 0 6px;font-weight:700;font-size:16px">Total</td>
+                <td style="padding:12px 0 6px;text-align:right;font-weight:900;font-size:18px;color:#1a1a1a">${montoStr}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#aaa;margin-top:20px">ID de transacción: <code>${chargeId}</code></p>
+        <p style="font-size:12px;color:#888">Gracias por tu preferencia. ¡Hasta la próxima!</p>
+      </div>
+    </div>`
+  await send(to, `✅ Comprobante de pago — ${shopNombre}`, html)
+}
+
 // ── 4. Premio canjeado ───────────────────────────────────────
 export async function sendPremioCanjado(
   to: string, nombre: string, shopNombre: string,

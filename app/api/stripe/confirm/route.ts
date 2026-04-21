@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendReciboPago } from '@/lib/email/sender'
 
 export async function POST(request: NextRequest) {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createAdminClient()
-    const { data: shop } = await admin.from('shops').select('id').eq('id', shop_id).single()
+    const { data: shop } = await admin.from('shops').select('id, nombre').eq('id', shop_id).single()
     if (!shop) return NextResponse.json({ ok: false, error: 'Barbería no encontrada' }, { status: 404 })
 
     const stripe = new Stripe(secretKey)
@@ -47,6 +48,19 @@ export async function POST(request: NextRequest) {
         .update({ estado: 'completado' })
         .eq('id', appointment_id)
         .eq('shop_id', shop_id)
+    }
+
+    // Enviar recibo por email
+    if (pi.receipt_email) {
+      const clientNombre = pi.receipt_email.split('@')[0]
+      await sendReciboPago(
+        pi.receipt_email,
+        clientNombre,
+        (shop as any).nombre,
+        pi.description ?? 'Pago de servicio',
+        pi.amount / 100,
+        pi.id,
+      )
     }
 
     return NextResponse.json({ ok: true })

@@ -75,6 +75,18 @@ export async function createClientAction(formData: FormData) {
   const shop = await getMyShop()
   if (!shop) return { error: 'No autorizado.' }
 
+  // Enforce 30-client limit for phase1 shops
+  if (shop.subscription_plan !== 'phase2') {
+    const admin = createAdminClient()
+    const { count } = await admin
+      .from('clients')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', shop.id)
+    if ((count ?? 0) >= 30) {
+      return { error: 'Plan Básico: límite de 30 clientes alcanzado. Actualiza a Barber Pro para clientes ilimitados.' }
+    }
+  }
+
   const dni    = (formData.get('dni_ce') as string).trim()
   const nombre = (formData.get('nombre') as string).trim()
   const email  = (formData.get('email') as string).trim()

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendReciboPago } from '@/lib/email/sender'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const adminDb = createAdminClient()
-    const { data: shopRow } = await adminDb.from('shops').select('id').eq('id', shop_id).single()
+    const { data: shopRow } = await adminDb.from('shops').select('id, nombre').eq('id', shop_id).single()
     if (!shopRow) return NextResponse.json({ ok: false, error: 'Barbería no encontrada' }, { status: 404 })
 
     const secretKey = process.env.CULQI_SECRET_KEY
@@ -69,6 +70,16 @@ export async function POST(request: NextRequest) {
         .eq('id', appointment_id)
         .eq('shop_id', shop_id)
     }
+
+    // Enviar recibo por email
+    await sendReciboPago(
+      email,
+      email.split('@')[0],
+      (shopRow as any).nombre,
+      concepto ?? 'Pago de servicio',
+      monto_centavos / 100,
+      charge.id,
+    )
 
     return NextResponse.json({ ok: true, charge_id: charge.id })
 
