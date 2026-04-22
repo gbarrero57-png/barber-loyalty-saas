@@ -5,6 +5,7 @@ import { getMyShop } from '@/lib/actions/shop'
 import { CalendarDays, Clock, User, Scissors, Link } from 'lucide-react'
 import UpgradeGate from '@/components/UpgradeGate'
 import NuevaCitaForm from './NuevaCitaForm'
+import EditarCitaForm from './EditarCitaForm'
 
 const ESTADO_COLORS: Record<string, { bg: string; text: string }> = {
   pendiente:  { bg: '#fbbf2420', text: '#fbbf24' },
@@ -138,6 +139,13 @@ export default async function CitasPage() {
                         </form>
                       </div>
                     </div>
+                    {(a.estado === 'pendiente' || a.estado === 'confirmado') && (
+                      <EditarCitaForm
+                        cita={{ id: a.id, fecha_inicio: a.fecha_inicio, barber_id: a.barber_id, service_id: a.service_id, notas: a.notas }}
+                        activeBarbers={activeBarbers}
+                        activeServices={activeServices}
+                      />
+                    )}
                   )
                 })}
               </div>

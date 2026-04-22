@@ -2,7 +2,7 @@ import { getMyShop } from '@/lib/actions/shop'
 import { getCajaStats } from '@/lib/actions/caja'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-import { Users, Scissors, Trophy, TrendingUp, BarChart2 } from 'lucide-react'
+import { Users, Scissors, Trophy, TrendingUp, BarChart2, Download } from 'lucide-react'
 import Link from 'next/link'
 import UpgradeGate from '@/components/UpgradeGate'
 
@@ -85,8 +85,24 @@ export default async function ReportesPage() {
   return (
     <div>
       <Link href="/admin" className="link-back" style={{ marginBottom: 18, display: 'inline-flex' }}>← Admin</Link>
-      <h1 className="page-title">Reportes</h1>
-      <p className="page-subtitle">{now.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+        <div>
+          <h1 className="page-title" style={{ margin: 0 }}>Reportes</h1>
+          <p className="page-subtitle" style={{ marginBottom: 0 }}>{now.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}</p>
+        </div>
+        <a
+          href="/api/export/reportes"
+          download
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700,
+            background: 'rgba(245,197,0,0.1)', border: '1px solid rgba(245,197,0,0.2)',
+            color: 'var(--yellow)', textDecoration: 'none', whiteSpace: 'nowrap',
+          }}
+        >
+          <Download style={{ width: 13, height: 13 }} /> Exportar CSV
+        </a>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
         {[

@@ -1,7 +1,7 @@
 import { getCajaMovements, getCajaStats, deleteMovement } from '@/lib/actions/caja'
 import { getBarbers } from '@/lib/actions/barbers'
 import { getMyShop } from '@/lib/actions/shop'
-import { TrendingUp, TrendingDown, Wallet, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, DollarSign, Download } from 'lucide-react'
 import UpgradeGate from '@/components/UpgradeGate'
 import NuevoMovimientoForm from './NuevoMovimientoForm'
 
@@ -98,10 +98,23 @@ export default async function CajaPage() {
         <div className="list-table">
           <div style={{ padding: '11px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="label" style={{ margin: 0 }}>Movimientos — {movements.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a
+              href="/api/export/caja"
+              download
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 11, fontWeight: 700, color: 'var(--yellow)',
+                textDecoration: 'none',
+              }}
+            >
+              <Download style={{ width: 11, height: 11 }} /> CSV
+            </a>
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
               <span style={{ color: '#34d399', marginRight: 12 }}>↑ {fmt(ingresos.reduce((s: number, m: any) => s + Number(m.monto), 0))}</span>
               <span style={{ color: '#f87171' }}>↓ {fmt(egresos.reduce((s: number, m: any) => s + Number(m.monto), 0))}</span>
             </span>
+            </div>
           </div>
           {movements.map((m: any) => (
             <div key={m.id} className="list-table-row" style={{ gridTemplateColumns: '1fr auto', gap: 10 }}>
