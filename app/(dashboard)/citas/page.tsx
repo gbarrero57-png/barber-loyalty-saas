@@ -1,9 +1,10 @@
-import { getUpcomingAppointments, createAppointment, updateAppointmentEstado, deleteAppointment } from '@/lib/actions/appointments'
+import { getUpcomingAppointments, updateAppointmentEstado, deleteAppointment } from '@/lib/actions/appointments'
 import { getBarbers } from '@/lib/actions/barbers'
 import { getServices } from '@/lib/actions/services'
 import { getMyShop } from '@/lib/actions/shop'
 import { CalendarDays, Clock, User, Scissors, Link } from 'lucide-react'
 import UpgradeGate from '@/components/UpgradeGate'
+import NuevaCitaForm from './NuevaCitaForm'
 
 const ESTADO_COLORS: Record<string, { bg: string; text: string }> = {
   pendiente:  { bg: '#fbbf2420', text: '#fbbf24' },
@@ -70,51 +71,11 @@ export default async function CitasPage() {
       <h1 className="page-title">Agenda</h1>
       <p className="page-subtitle">{appointments.length} citas próximas</p>
 
-      {/* Formulario nueva cita */}
-      <div className="section-card">
-        <p className="section-title">
-          <CalendarDays className="w-3.5 h-3.5" /> Nueva cita
-        </p>
-        <form action={createAppointment} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-          <div>
-            <label className="input-label">Cliente *</label>
-            <input name="client_nombre" required placeholder="Nombre del cliente" />
-          </div>
-          <div>
-            <label className="input-label">Teléfono</label>
-            <input name="client_tel" placeholder="987654321" />
-          </div>
-          <div>
-            <label className="input-label">Fecha y hora *</label>
-            <input name="fecha_inicio" type="datetime-local" required min={nowISO} />
-          </div>
-          <div>
-            <label className="input-label">Barbero</label>
-            <select name="barber_id">
-              <option value="">Sin asignar</option>
-              {activeBarbers.map((b: any) => <option key={b.id} value={b.id}>{b.nombre}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="input-label">Servicio</label>
-            <select name="service_id">
-              <option value="">Sin servicio</option>
-              {activeServices.map((s: any) => <option key={s.id} value={s.id}>{s.nombre} — S/{Number(s.precio).toFixed(2)}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="input-label">Duración (min)</label>
-            <input name="duracion_min" type="number" min="5" step="5" defaultValue={30} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label className="input-label">Notas</label>
-            <input name="notas" placeholder="Observaciones (opcional)" />
-          </div>
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="submit" className="btn-add">Agendar cita</button>
-          </div>
-        </form>
-      </div>
+      <NuevaCitaForm
+        activeBarbers={activeBarbers}
+        activeServices={activeServices}
+        nowISO={nowISO}
+      />
 
       {appointments.length === 0 ? (
         <div className="empty-state">

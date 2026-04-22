@@ -68,6 +68,7 @@ export async function registerVisit(clientId: string) {
   }
 
   revalidatePath(`/clientes/${clientId}`)
+  revalidatePath('/home')
   return { success: true, tarjetaCompleta: completa, premioTexto }
 }
 
@@ -108,5 +109,6 @@ export async function redeemPrize(clientId: string) {
   }
 
   revalidatePath(`/clientes/${clientId}`)
+  revalidatePath('/home')
   return { success: true }
 }

@@ -55,31 +55,39 @@ export async function getCajaStats() {
   return { ingresosMes, egresosMes, balanceMes: ingresosMes - egresosMes, ingresosHoy }
 }
 
-export async function registerMovement(formData: FormData): Promise<void> {
+export async function registerMovement(formData: FormData): Promise<{ error?: string }> {
   const shop = await getMyShop()
-  if (!shop) return
+  if (!shop) return { error: 'No autorizado.' }
   const admin = createAdminClient()
 
-  const barberId = (formData.get('barber_id') as string) || null
+  const monto = parseFloat(formData.get('monto') as string)
+  if (isNaN(monto) || monto <= 0) return { error: 'Monto inválido.' }
 
-  await admin.from('cash_movements').insert({
-    shop_id: shop.id,
-    tipo: formData.get('tipo') as string,
-    categoria: formData.get('categoria') as string,
+  const { error } = await admin.from('cash_movements').insert({
+    shop_id:     shop.id,
+    tipo:        formData.get('tipo') as string,
+    categoria:   formData.get('categoria') as string,
     descripcion: (formData.get('descripcion') as string) || null,
-    monto: parseFloat(formData.get('monto') as string),
+    monto,
     metodo_pago: formData.get('metodo_pago') as string,
-    barber_id: barberId,
-    fecha: new Date().toISOString(),
+    barber_id:   (formData.get('barber_id') as string) || null,
+    fecha:       new Date().toISOString(),
   })
+  if (error) return { error: error.message }
+
   revalidatePath('/caja')
   revalidatePath('/admin/reportes')
+  revalidatePath('/home')
+  return {}
 }
 
-export async function deleteMovement(id: string): Promise<void> {
+export async function deleteMovement(id: string): Promise<{ error?: string }> {
   const shop = await getMyShop()
-  if (!shop) return
+  if (!shop) return { error: 'No autorizado.' }
   const admin = createAdminClient()
-  await admin.from('cash_movements').delete().eq('id', id).eq('shop_id', shop.id)
+  const { error } = await admin.from('cash_movements').delete().eq('id', id).eq('shop_id', shop.id)
+  if (error) return { error: error.message }
   revalidatePath('/caja')
+  revalidatePath('/home')
+  return {}
 }

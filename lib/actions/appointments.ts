@@ -42,17 +42,34 @@ export async function getUpcomingAppointments() {
   return data ?? []
 }
 
-export async function createAppointment(formData: FormData): Promise<void> {
+export async function createAppointment(formData: FormData): Promise<{ error?: string }> {
   const shop = await getMyShop()
-  if (!shop) return
+  if (!shop) return { error: 'No autorizado.' }
   const admin = createAdminClient()
 
   const fechaInicio = new Date(formData.get('fecha_inicio') as string)
   const durMin = parseInt(formData.get('duracion_min') as string) || 30
   const fechaFin = new Date(fechaInicio.getTime() + durMin * 60000)
 
+  if (isNaN(fechaInicio.getTime())) return { error: 'Fecha inválida.' }
+
   const serviceId = (formData.get('service_id') as string) || null
-  const barberId = (formData.get('barber_id') as string) || null
+  const barberId  = (formData.get('barber_id') as string) || null
+
+  // Double-booking check: same barber, overlapping time, non-cancelled
+  if (barberId) {
+    const { data: conflict } = await admin
+      .from('appointments')
+      .select('id')
+      .eq('shop_id', shop.id)
+      .eq('barber_id', barberId)
+      .not('estado', 'in', '("cancelado")')
+      .lt('fecha_inicio', fechaFin.toISOString())
+      .gt('fecha_fin', fechaInicio.toISOString())
+      .limit(1)
+      .maybeSingle()
+    if (conflict) return { error: 'El barbero ya tiene una cita en ese horario.' }
+  }
 
   let precio: number | null = null
   if (serviceId) {
@@ -60,18 +77,23 @@ export async function createAppointment(formData: FormData): Promise<void> {
     precio = svc?.precio ?? null
   }
 
-  await admin.from('appointments').insert({
-    shop_id: shop.id,
-    barber_id: barberId,
-    service_id: serviceId,
+  const { error } = await admin.from('appointments').insert({
+    shop_id:       shop.id,
+    barber_id:     barberId,
+    service_id:    serviceId,
     client_nombre: formData.get('client_nombre') as string,
-    client_tel: (formData.get('client_tel') as string) || null,
-    fecha_inicio: fechaInicio.toISOString(),
-    fecha_fin: fechaFin.toISOString(),
-    notas: (formData.get('notas') as string) || null,
+    client_tel:    (formData.get('client_tel') as string) || null,
+    fecha_inicio:  fechaInicio.toISOString(),
+    fecha_fin:     fechaFin.toISOString(),
+    notas:         (formData.get('notas') as string) || null,
     precio,
   })
+
+  if (error) return { error: error.message }
+
   revalidatePath('/citas')
+  revalidatePath('/home')
+  return {}
 }
 
 export async function updateAppointmentEstado(id: string, estado: string) {
