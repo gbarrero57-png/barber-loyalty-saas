@@ -160,6 +160,12 @@ export default async function UpgradePage() {
           <p style={{ margin: '12px 0 0', fontSize: 11, color: 'rgba(245,197,0,0.4)', textAlign: 'center' }}>
             Sin contrato · Cancela cuando quieras
           </p>
+          <p style={{ margin: '8px 0 0', fontSize: 10, color: 'rgba(245,197,0,0.25)', textAlign: 'center' }}>
+            Al suscribirte aceptas nuestros{' '}
+            <Link href="/terms" style={{ color: 'rgba(245,197,0,0.45)', textDecoration: 'underline' }}>Términos</Link>
+            {' '}y{' '}
+            <Link href="/privacy" style={{ color: 'rgba(245,197,0,0.45)', textDecoration: 'underline' }}>Privacidad</Link>
+          </p>
         </div>
       </div>
 

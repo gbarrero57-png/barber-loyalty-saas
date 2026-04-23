@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
     const isAuth      = path.startsWith('/login') || path.startsWith('/register')
     const isSuperAdmin = path.startsWith('/superadmin')
     const isPublic    = path === '/' || path.startsWith('/pagar') || path.startsWith('/api/')
+      || path === '/terms' || path === '/privacy'
 
     if (isSuperAdmin || isPublic) return supabaseResponse
 

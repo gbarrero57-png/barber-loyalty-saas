@@ -84,6 +84,12 @@ export default function RegisterPage() {
           ¿Ya tienes cuenta?{' '}
           <Link href="/login" style={{ color: 'var(--gold)', fontWeight: 600 }}>Ingresar</Link>
         </p>
+        <p className="text-center mt-3" style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11 }}>
+          Al registrarte aceptas nuestros{' '}
+          <Link href="/terms" style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'underline' }}>Términos de Servicio</Link>
+          {' '}y{' '}
+          <Link href="/privacy" style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'underline' }}>Política de Privacidad</Link>
+        </p>
       </div>
     </div>
   )

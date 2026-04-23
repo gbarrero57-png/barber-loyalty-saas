@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { handleBotMessage } from '@/lib/bot/handler'
 
@@ -19,18 +20,45 @@ function twimlResponse(message: string): NextResponse {
   })
 }
 
+// Twilio HMAC-SHA1 signature validation
+// https://www.twilio.com/docs/usage/webhooks/webhooks-security
+function validateTwilioSignature(
+  authToken: string,
+  signature: string,
+  url: string,
+  params: Record<string, string>,
+): boolean {
+  const payload = Object.keys(params).sort()
+    .reduce((acc, key) => acc + key + params[key], url)
+  const expected = createHmac('sha1', authToken).update(payload).digest('base64')
+  return expected === signature
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const from = (formData.get('From') as string ?? '').trim()   // whatsapp:+51987654321
-    const to   = (formData.get('To')   as string ?? '').trim()   // whatsapp:+13186683828
-    const body = (formData.get('Body') as string ?? '').trim()
+    const params: Record<string, string> = {}
+    formData.forEach((val, key) => { params[key] = String(val) })
+
+    // Validate Twilio signature if auth token is configured
+    const authToken = process.env.TWILIO_AUTH_TOKEN
+    if (authToken) {
+      const signature = request.headers.get('x-twilio-signature') ?? ''
+      const url = request.url
+      if (!validateTwilioSignature(authToken, signature, url, params)) {
+        console.warn('[whatsapp/webhook] Invalid Twilio signature')
+        return new NextResponse('Forbidden', { status: 403 })
+      }
+    }
+
+    const from = (params['From'] ?? '').trim()   // whatsapp:+51987654321
+    const to   = (params['To']   ?? '').trim()   // whatsapp:+13186683828
+    const body = (params['Body'] ?? '').trim()
 
     if (!from || !to) return new NextResponse('', { status: 200 })
 
     const admin = createAdminClient()
 
-    // Buscar barbería por número Twilio (bot_twilio_number)
     const rawNumber = to.replace('whatsapp:', '')
     const { data: shops } = await admin
       .from('shops')
@@ -40,13 +68,8 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     const shop = shops?.[0] ?? null
+    if (!shop) return new NextResponse('', { status: 200 })
 
-    if (!shop) {
-      // No hay barbería con ese número — no responder (evitar spam)
-      return new NextResponse('', { status: 200 })
-    }
-
-    // Phase 2 check
     const { data: sub } = await admin
       .from('subscriptions')
       .select('plan, status')
@@ -66,7 +89,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Twilio también hace GET para verificar el endpoint
+// Twilio hace GET para verificar el endpoint
 export async function GET() {
   return new NextResponse('OK', { status: 200 })
 }
